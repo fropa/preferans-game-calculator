@@ -16,7 +16,7 @@
 
       <!-- GLOBAL PULYA -->
       <div class="card">
-        <h2>Game Pulya</h2>
+        <h2>Game settings</h2>
         <label>P (Pulya – played to)</label>
         <input id="game-pulya" type="number" placeholder="e.g. 20 or 30" />
       </div>
@@ -53,14 +53,18 @@
     <!-- REVIEW -->
     <div id="screen-review" class="screen hidden">
       <h1>Review</h1>
+
       <div class="card" id="review-list"></div>
+
       <button onclick="calculateFinal()">Calculate final</button>
     </div>
 
     <!-- FINAL -->
     <div id="screen-final" class="screen hidden">
       <h1>Final Result</h1>
+
       <div class="card" id="final-results"></div>
+
       <button class="secondary" onclick="location.reload()">New game</button>
     </div>
 

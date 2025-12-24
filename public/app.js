@@ -1,11 +1,10 @@
 const app = {
   players: [],
   currentPlayerIndex: 0,
-  pulya: 0, // GLOBAL P
+  pulya: 0, // GLOBAL ONLY
 };
 
-/* ---------- helpers ---------- */
-
+/* helpers */
 function qs(id) {
   return document.getElementById(id);
 }
@@ -27,8 +26,7 @@ function fmt(n) {
   return n.toFixed(2);
 }
 
-/* ---------- setup ---------- */
-
+/* setup */
 function startGame() {
   const P = num(qs("game-pulya").value);
   if (P <= 0) {
@@ -70,8 +68,7 @@ function startGame() {
   show("screen-input");
 }
 
-/* ---------- input ---------- */
-
+/* input */
 function renderInput() {
   const p = app.players[app.currentPlayerIndex];
   qs("current-player-name").innerText = p.name;
@@ -109,8 +106,7 @@ function savePlayerAndNext() {
   }
 }
 
-/* ---------- review ---------- */
-
+/* review — Pulya shown ONCE */
 function renderReview() {
   const c = qs("review-list");
   c.innerHTML = "";
@@ -134,8 +130,7 @@ function renderReview() {
   });
 }
 
-/* ---------- FINAL CALCULATION (YOUR RULES) ---------- */
-
+/* FINAL — Georgian rules */
 function calculateFinal() {
   const out = qs("final-results");
   out.innerHTML = "";
@@ -143,21 +138,20 @@ function calculateFinal() {
   const N = app.players.length;
   const K = (N === 3) ? 2.5 : 3;
 
-  // Step 1–2: zero gora & penalty
   const gMin = Math.min(...app.players.map(p => p.gora));
-  const penalty = {};
 
+  const penalty = {};
   app.players.forEach(p => {
     penalty[p.name] = (p.gora - gMin) * K;
   });
 
-  // Clone vists matrix
+  // clone vists
   const V = {};
   app.players.forEach(p => {
     V[p.name] = { ...p.vists };
   });
 
-  // Step 3: add penalty to vists
+  // add penalties
   app.players.forEach(X => {
     const px = penalty[X.name];
     if (px === 0) return;
@@ -169,7 +163,7 @@ function calculateFinal() {
     });
   });
 
-  // Step 4–5: netting & final
+  // netting
   const final = {};
   app.players.forEach(p => final[p.name] = 0);
 
@@ -184,7 +178,7 @@ function calculateFinal() {
     }
   }
 
-  // Render final
+  // Pulya context — ONCE
   const info = document.createElement("div");
   info.className = "result-line";
   info.innerHTML = `
