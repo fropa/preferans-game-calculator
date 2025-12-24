@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preferans Calculator</title>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+
+    <!-- SCREEN: SETUP -->
+    <div id="screen-setup" class="screen">
+      <h1>Preferans Calculator</h1>
+
+      <div class="card">
+        <h2>Player names</h2>
+        <input id="player-name-0" type="text" placeholder="Player 1" />
+        <input id="player-name-1" type="text" placeholder="Player 2" />
+        <input id="player-name-2" type="text" placeholder="Player 3" />
+        <input id="player-name-3" type="text" placeholder="Player 4" />
+      </div>
+
+      <button onclick="startGame()">Start</button>
+    </div>
+
+    <!-- SCREEN: PLAYER INPUT -->
+    <div id="screen-input" class="screen hidden">
+      <h1 id="current-player-name"></h1>
+
+      <div class="card">
+        <label>Pool</label>
+        <input id="pool-input" type="number" min="0" value="0" />
+
+        <label>Mountain</label>
+        <input id="mountain-input" type="number" min="0" value="0" />
+      </div>
+
+      <div class="card">
+        <h3>Whists</h3>
+        <div id="whists-container"></div>
+      </div>
+
+      <button onclick="savePlayerAndNext()">Next player</button>
+    </div>
+
+    <!-- SCREEN: REVIEW -->
+    <div id="screen-review" class="screen hidden">
+      <h1>Review</h1>
+
+      <div class="card" id="review-list"></div>
+
+      <button onclick="calculateFinal()">Calculate final</button>
+    </div>
+
+    <!-- SCREEN: FINAL -->
+    <div id="screen-final" class="screen hidden">
+      <h1>Final Result</h1>
+
+      <div class="card" id="final-results"></div>
+
+      <button class="secondary" onclick="location.reload()">New game</button>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
