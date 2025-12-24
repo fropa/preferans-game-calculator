@@ -10,63 +10,57 @@
 <body>
   <div class="container">
 
-    <!-- SCREEN: SETUP -->
+    <!-- SETUP -->
     <div id="screen-setup" class="screen">
       <h1>Preferans Calculator</h1>
 
+      <!-- GLOBAL PULYA -->
       <div class="card">
-        <h2>Player names</h2>
-        <input id="player-name-0" type="text" placeholder="Player 1" />
-        <input id="player-name-1" type="text" placeholder="Player 2" />
-        <input id="player-name-2" type="text" placeholder="Player 3" />
-        <input id="player-name-3" type="text" placeholder="Player 4" />
+        <h2>Game Pulya</h2>
+        <label>P (Pulya – played to)</label>
+        <input id="game-pulya" type="number" placeholder="e.g. 20 or 30" />
+      </div>
+
+      <!-- PLAYERS -->
+      <div class="card">
+        <h2>Players</h2>
+        <input id="player-name-0" placeholder="Player 1" />
+        <input id="player-name-1" placeholder="Player 2" />
+        <input id="player-name-2" placeholder="Player 3" />
+        <input id="player-name-3" placeholder="Player 4" />
       </div>
 
       <button onclick="startGame()">Start</button>
     </div>
 
-    <!-- SCREEN: PLAYER INPUT -->
+    <!-- INPUT -->
     <div id="screen-input" class="screen hidden">
       <h1 id="current-player-name"></h1>
 
       <div class="card">
-        <label>P (Pulya)</label>
-        <input id="pool-input" type="number" value="0" />
-
         <label>G (Gora)</label>
-        <input id="mountain-input" type="number" value="0" />
+        <input id="gora-input" type="number" value="0" />
       </div>
 
       <div class="card">
-        <h3>Vists entry (payments)</h3>
-        <div class="hint">
-          Enter how many vists <b>this player pays</b> to each other player.
-        </div>
+        <h3>Vists (as written on paper)</h3>
         <div id="whists-container"></div>
       </div>
 
       <button onclick="savePlayerAndNext()">Next player</button>
     </div>
 
-    <!-- SCREEN: REVIEW -->
+    <!-- REVIEW -->
     <div id="screen-review" class="screen hidden">
       <h1>Review</h1>
-
       <div class="card" id="review-list"></div>
-
-      <div class="warning hidden" id="review-warning"></div>
-
       <button onclick="calculateFinal()">Calculate final</button>
     </div>
 
-    <!-- SCREEN: FINAL -->
+    <!-- FINAL -->
     <div id="screen-final" class="screen hidden">
       <h1>Final Result</h1>
-
       <div class="card" id="final-results"></div>
-
-      <div class="warning hidden" id="final-warning"></div>
-
       <button class="secondary" onclick="location.reload()">New game</button>
     </div>
 

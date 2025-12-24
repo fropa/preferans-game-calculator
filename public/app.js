@@ -1,7 +1,7 @@
 const app = {
   players: [],
   currentPlayerIndex: 0,
-  K: 10, // price of pulya (your table)
+  pulya: 0, // GLOBAL P
 };
 
 /* ---------- helpers ---------- */
@@ -11,211 +11,199 @@ function qs(id) {
 }
 
 function show(id) {
-  document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+  document.querySelectorAll(".screen").forEach(s =>
+    s.classList.add("hidden")
+  );
   qs(id).classList.remove("hidden");
 }
 
-function toNumber(v) {
-  // Allows empty -> 0, integers/decimals
+function num(v) {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 }
 
 function fmt(n) {
-  // Pretty formatting: integers as int, others up to 2 decimals
-  const rounded = Math.round(n * 100) / 100;
-  if (Math.abs(rounded - Math.round(rounded)) < 1e-9) return String(Math.round(rounded));
-  return rounded.toFixed(2);
+  if (Math.abs(n - Math.round(n)) < 1e-9) return String(Math.round(n));
+  return n.toFixed(2);
 }
 
 /* ---------- setup ---------- */
 
 function startGame() {
-  const inputs = [
-    qs("player-name-0"),
-    qs("player-name-1"),
-    qs("player-name-2"),
-    qs("player-name-3"),
-  ];
-
-  const names = inputs.map(i => i.value.trim()).filter(n => n.length > 0);
-
-  if (names.length < 3) {
-    alert("At least 3 players are required");
+  const P = num(qs("game-pulya").value);
+  if (P <= 0) {
+    alert("Please enter game Pulya (P)");
     return;
   }
 
-  if (names.length > 4) {
-    alert("Maximum 4 players allowed");
+  const names = [
+    qs("player-name-0").value.trim(),
+    qs("player-name-1").value.trim(),
+    qs("player-name-2").value.trim(),
+    qs("player-name-3").value.trim(),
+  ].filter(Boolean);
+
+  if (names.length < 3 || names.length > 4) {
+    alert("3 or 4 players required");
     return;
   }
+
+  app.pulya = P;
 
   app.players = names.map(name => ({
     name,
-    P: 0,           // Pulya
-    G: 0,           // Gora
-    payTo: {},      // payments: this player pays to others
+    gora: 0,
+    vists: {},
   }));
 
-  // init payment matrix (payTo) with zeros
+  // init vists matrix
   app.players.forEach(p => {
     app.players.forEach(o => {
-      if (p.name !== o.name) p.payTo[o.name] = 0;
+      if (p.name !== o.name) {
+        p.vists[o.name] = 0;
+      }
     });
   });
 
   app.currentPlayerIndex = 0;
-  renderPlayerInput();
+  renderInput();
   show("screen-input");
 }
 
-/* ---------- player input ---------- */
+/* ---------- input ---------- */
 
-function renderPlayerInput() {
-  const player = app.players[app.currentPlayerIndex];
-  qs("current-player-name").innerText = player.name;
+function renderInput() {
+  const p = app.players[app.currentPlayerIndex];
+  qs("current-player-name").innerText = p.name;
+  qs("gora-input").value = p.gora;
 
-  // Keep old DOM ids, but map them to P/G now
-  qs("pool-input").value = player.P;
-  qs("mountain-input").value = player.G;
+  const c = qs("whists-container");
+  c.innerHTML = "";
 
-  const container = qs("whists-container");
-  container.innerHTML = "";
-
-  Object.keys(player.payTo).forEach(target => {
+  Object.keys(p.vists).forEach(target => {
     const div = document.createElement("div");
     div.innerHTML = `
-      <label>Paid TO ${target}</label>
-      <input type="number" value="${player.payTo[target]}"
-        oninput="updatePayTo('${target}', this.value)">
+      <label>${p.name} → ${target}</label>
+      <input type="number" value="${p.vists[target]}"
+        oninput="updateVist('${target}', this.value)">
     `;
-    container.appendChild(div);
+    c.appendChild(div);
   });
 }
 
-function updatePayTo(target, value) {
-  app.players[app.currentPlayerIndex].payTo[target] = toNumber(value);
+function updateVist(target, value) {
+  app.players[app.currentPlayerIndex].vists[target] = num(value);
 }
 
 function savePlayerAndNext() {
-  const player = app.players[app.currentPlayerIndex];
-
-  player.P = toNumber(qs("pool-input").value);
-  player.G = toNumber(qs("mountain-input").value);
+  app.players[app.currentPlayerIndex].gora =
+    num(qs("gora-input").value);
 
   app.currentPlayerIndex++;
 
   if (app.currentPlayerIndex < app.players.length) {
-    renderPlayerInput();
+    renderInput();
   } else {
     renderReview();
     show("screen-review");
   }
 }
 
-/* ---------- calculations (based on your manual) ---------- */
-
-// Compute net Vists V_i from pay matrix:
-// V_i = received_from_others - paid_to_others
-function computeNetVists() {
-  const names = app.players.map(p => p.name);
-
-  // Outgoing for i
-  const paid = {};
-  // Incoming for i
-  const received = {};
-  names.forEach(n => { paid[n] = 0; received[n] = 0; });
-
-  app.players.forEach(p => {
-    const from = p.name;
-    Object.entries(p.payTo).forEach(([to, amt]) => {
-      const a = toNumber(amt);
-      paid[from] += a;
-      received[to] += a;
-    });
-  });
-
-  const V = {};
-  names.forEach(n => {
-    V[n] = received[n] - paid[n];
-  });
-
-  return V; // map name -> net V
-}
+/* ---------- review ---------- */
 
 function renderReview() {
-  const container = qs("review-list");
-  const warn = qs("review-warning");
-  warn.classList.add("hidden");
-  warn.innerText = "";
+  const c = qs("review-list");
+  c.innerHTML = "";
 
-  container.innerHTML = "";
-
-  const V = computeNetVists();
+  const header = document.createElement("div");
+  header.className = "result-line";
+  header.innerHTML = `
+    <strong>Pulya</strong>
+    <strong>${fmt(app.pulya)}</strong>
+  `;
+  c.appendChild(header);
 
   app.players.forEach(p => {
-    const v = V[p.name];
     const row = document.createElement("div");
     row.className = "result-line";
     row.innerHTML = `
       <span>${p.name}</span>
-      <span>P ${fmt(p.P)} · G ${fmt(p.G)} · V ${fmt(v)}</span>
+      <span>Gora ${fmt(p.gora)}</span>
     `;
-    container.appendChild(row);
+    c.appendChild(row);
   });
-
-  // Sanity check: sum(V)=0 (should hold if matrix used consistently)
-  const sumV = Object.values(V).reduce((a, b) => a + b, 0);
-  if (Math.abs(sumV) > 1e-9) {
-    warn.classList.remove("hidden");
-    warn.innerText = `⚠ Sanity check failed: sum(V) = ${fmt(sumV)} (should be 0)`;
-  }
 }
+
+/* ---------- FINAL CALCULATION (YOUR RULES) ---------- */
 
 function calculateFinal() {
   const out = qs("final-results");
-  const warn = qs("final-warning");
-  warn.classList.add("hidden");
-  warn.innerText = "";
-
   out.innerHTML = "";
 
-  const n = app.players.length;
-  const V = computeNetVists();
+  const N = app.players.length;
+  const K = (N === 3) ? 2.5 : 3;
 
-  // Step 2: average pulya
-  const sumP = app.players.reduce((a, p) => a + toNumber(p.P), 0);
-  const Pavg = sumP / n;
+  // Step 1–2: zero gora & penalty
+  const gMin = Math.min(...app.players.map(p => p.gora));
+  const penalty = {};
 
-  // Step 3 + 4: PulyaPoints and Final
-  const finals = [];
   app.players.forEach(p => {
-    const PulyaPoints = (toNumber(p.P) - Pavg) * app.K;
-    const Final = PulyaPoints - toNumber(p.G) + toNumber(V[p.name]);
-
-    finals.push({ name: p.name, PulyaPoints, G: p.G, V: V[p.name], Final });
+    penalty[p.name] = (p.gora - gMin) * K;
   });
 
-  // Display: show Final only (keep UI simple)
-  finals.forEach(r => {
+  // Clone vists matrix
+  const V = {};
+  app.players.forEach(p => {
+    V[p.name] = { ...p.vists };
+  });
+
+  // Step 3: add penalty to vists
+  app.players.forEach(X => {
+    const px = penalty[X.name];
+    if (px === 0) return;
+
+    app.players.forEach(Y => {
+      if (Y.name !== X.name) {
+        V[Y.name][X.name] += px;
+      }
+    });
+  });
+
+  // Step 4–5: netting & final
+  const final = {};
+  app.players.forEach(p => final[p.name] = 0);
+
+  for (let i = 0; i < app.players.length; i++) {
+    for (let j = i + 1; j < app.players.length; j++) {
+      const A = app.players[i].name;
+      const B = app.players[j].name;
+
+      const net = (V[A][B] || 0) - (V[B][A] || 0);
+      final[A] += net;
+      final[B] -= net;
+    }
+  }
+
+  // Render final
+  const info = document.createElement("div");
+  info.className = "result-line";
+  info.innerHTML = `
+    <strong>Pulya</strong>
+    <strong>${fmt(app.pulya)}</strong>
+  `;
+  out.appendChild(info);
+
+  Object.entries(final).forEach(([name, val]) => {
     const row = document.createElement("div");
     row.className = "result-line";
     row.innerHTML = `
-      <span>${r.name}</span>
-      <span class="${r.Final >= 0 ? "plus" : "minus"}">
-        ${r.Final >= 0 ? "+" : ""}${fmt(r.Final)}
+      <span>${name}</span>
+      <span class="${val >= 0 ? "plus" : "minus"}">
+        ${val >= 0 ? "+" : ""}${fmt(val)}
       </span>
     `;
     out.appendChild(row);
   });
-
-  // Step 5 sanity check: sum(Final)=0
-  const sumFinal = finals.reduce((a, r) => a + r.Final, 0);
-  if (Math.abs(sumFinal) > 1e-6) {
-    warn.classList.remove("hidden");
-    warn.innerText =
-      `⚠ Sanity check failed: sum(Final) = ${fmt(sumFinal)} (should be 0). Check P/G inputs, vists matrix, or K=${app.K}.`;
-  }
 
   show("screen-final");
 }
