@@ -30,15 +30,18 @@
       <h1 id="current-player-name"></h1>
 
       <div class="card">
-        <label>Pool</label>
-        <input id="pool-input" type="number" min="0" value="0" />
+        <label>P (Pulya)</label>
+        <input id="pool-input" type="number" value="0" />
 
-        <label>Mountain</label>
-        <input id="mountain-input" type="number" min="0" value="0" />
+        <label>G (Gora)</label>
+        <input id="mountain-input" type="number" value="0" />
       </div>
 
       <div class="card">
-        <h3>Whists</h3>
+        <h3>Vists entry (payments)</h3>
+        <div class="hint">
+          Enter how many vists <b>this player pays</b> to each other player.
+        </div>
         <div id="whists-container"></div>
       </div>
 
@@ -51,6 +54,8 @@
 
       <div class="card" id="review-list"></div>
 
+      <div class="warning hidden" id="review-warning"></div>
+
       <button onclick="calculateFinal()">Calculate final</button>
     </div>
 
@@ -60,6 +65,8 @@
 
       <div class="card" id="final-results"></div>
 
+      <div class="warning hidden" id="final-warning"></div>
+
       <button class="secondary" onclick="location.reload()">New game</button>
     </div>
 
@@ -68,4 +75,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-
