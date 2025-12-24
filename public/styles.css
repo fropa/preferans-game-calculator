@@ -56,26 +56,13 @@
   }
   
   /* =========================
-     Inputs – ultra-minimal
+     INPUTS — HARD OVERRIDE
+     This kills white backgrounds
      ========================= */
-  .line-input {
-    width: 100%;
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid rgba(148,163,184,0.15);
-    padding: 10px 4px;
+  input {
+    background: transparent !important;
     color: #e5e7eb;
-    font-size: 1.1rem;
-    transition:
-      border-bottom-color 0.15s ease,
-      border-bottom-width 0.15s ease;
-  }
-  
-  /* Focus – subtle but clear */
-  .line-input:focus {
-    outline: none;
-    border-bottom-color: #60a5fa;
-    border-bottom-width: 2px;
+    border-radius: 0;
   }
   
   /* Remove number spinners */
@@ -85,6 +72,26 @@
   }
   input[type=number] {
     -moz-appearance: textfield;
+  }
+  
+  /* =========================
+     Line-style inputs
+     ========================= */
+  .line-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid rgba(148,163,184,0.15);
+    padding: 10px 4px;
+    font-size: 1.1rem;
+    transition:
+      border-bottom-color 0.15s ease,
+      border-bottom-width 0.15s ease;
+  }
+  
+  .line-input:focus {
+    outline: none;
+    border-bottom-color: #60a5fa;
+    border-bottom-width: 2px;
   }
   
   /* Variants */
@@ -98,15 +105,8 @@
     margin-bottom: 14px;
   }
   
-  /* Helper text */
-  .helper {
-    margin-top: 6px;
-    font-size: 0.8rem;
-    color: #64748b;
-  }
-  
   /* =========================
-     Vists – even softer
+     Vists — dynamic inputs
      ========================= */
   #whists-container label {
     display: block;
@@ -116,13 +116,27 @@
   }
   
   #whists-container input {
-    border-bottom-color: rgba(148,163,184,0.1);
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid rgba(148,163,184,0.1);
+    padding: 8px 4px;
     font-size: 1rem;
     margin-bottom: 12px;
   }
   
   #whists-container input:focus {
+    outline: none;
     border-bottom-color: #60a5fa;
+    border-bottom-width: 2px;
+  }
+  
+  /* =========================
+     Helper text
+     ========================= */
+  .helper {
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: #64748b;
   }
   
   /* =========================
@@ -166,13 +180,8 @@
     border-bottom: none;
   }
   
-  .plus {
-    color: #4ade80;
-  }
-  
-  .minus {
-    color: #f87171;
-  }
+  .plus { color: #4ade80; }
+  .minus { color: #f87171; }
   
   /* =========================
      Utility
