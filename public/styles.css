@@ -8,7 +8,7 @@
 }
 
 body {
-  background: #0f172a;
+  background: radial-gradient(circle at top, #0f172a, #020617);
   color: #e5e7eb;
   min-height: 100dvh;
   display: flex;
@@ -19,8 +19,8 @@ body {
 .container {
   width: 100%;
   max-width: 420px;
-  padding: 16px;
-  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  padding: 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
 }
 
 .screen {
@@ -29,68 +29,94 @@ body {
 
 /* Headings */
 h1 {
-  font-size: 1.6rem;
-  margin-bottom: 12px;
+  font-size: 1.7rem;
+  margin-bottom: 18px;
   text-align: center;
+  letter-spacing: 0.3px;
 }
 
 h2 {
-  font-size: 1.3rem;
-  margin-bottom: 8px;
+  font-size: 1.15rem;
+  margin-bottom: 10px;
+  color: #c7d2fe;
 }
 
 h3 {
-  font-size: 1.1rem;
-  margin: 16px 0 8px;
+  font-size: 1.05rem;
+  margin-bottom: 10px;
+  color: #c7d2fe;
 }
 
 /* Cards */
 .card {
-  background: #020617;
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 16px;
+  background: linear-gradient(180deg, #020617, #020617cc);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 18px;
+  box-shadow:
+    inset 0 0 0 1px #1e293b,
+    0 10px 30px rgba(0,0,0,0.4);
 }
 
 /* Inputs */
-label {
-  display: block;
-  margin-bottom: 6px;
-  color: #cbd5f5;
-}
-
-input[type="text"],
-input[type="number"] {
+input {
   width: 100%;
-  padding: 12px;
-  font-size: 1.1rem;
-  border-radius: 8px;
+  border-radius: 12px;
   border: none;
   background: #020617;
   color: #e5e7eb;
   outline: 1px solid #1e293b;
-  margin-bottom: 10px;
+  transition: outline 0.15s ease, box-shadow 0.15s ease;
 }
 
-input[type="number"] {
+/* Remove number spinners */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Big numeric input (Pulya / Gora) */
+.big-input {
+  padding: 16px;
+  font-size: 1.3rem;
   text-align: center;
+  margin-top: 6px;
 }
 
+/* Player name inputs */
+.player-input {
+  padding: 14px 16px;
+  font-size: 1.15rem;
+  margin-bottom: 10px;
+  background: #020617;
+}
+
+.player-input::placeholder {
+  color: #64748b;
+}
+
+/* Focus */
 input:focus {
   outline: 2px solid #38bdf8;
+  box-shadow: 0 0 0 4px rgba(56,189,248,0.15);
 }
 
 /* Buttons */
 button {
   width: 100%;
-  padding: 14px;
+  padding: 16px;
   margin-top: 12px;
-  font-size: 1.1rem;
-  border-radius: 10px;
+  font-size: 1.15rem;
+  border-radius: 14px;
   border: none;
   cursor: pointer;
-  background: #2563eb;
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
   color: white;
+  letter-spacing: 0.3px;
 }
 
 button.secondary {
@@ -118,19 +144,6 @@ button:active {
 .minus { color: #f87171; }
 
 /* Utility */
-.hidden { display: none; }
-
-.warning {
-  margin-top: 10px;
-  color: #facc15;
-  font-size: 0.95rem;
-  text-align: center;
-  line-height: 1.25rem;
-}
-
-.hint {
-  opacity: 0.8;
-  font-size: 0.92rem;
-  margin-bottom: 10px;
-  line-height: 1.25rem;
+.hidden {
+  display: none;
 }
