@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Preferans Calculator</title>
+  <title>Preferans</title>
 
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -12,67 +12,68 @@
 
     <!-- SETUP -->
     <div id="screen-setup" class="screen">
-      <h1>Preferans Calculator</h1>
+      <h1>Preferans</h1>
 
-      <!-- GAME SETTINGS -->
-      <div class="card">
-        <h2>Played to</h2>
+      <!-- GAME -->
+      <div class="section">
+        <label class="section-label">Played to</label>
         <input
           id="game-pulya"
           type="number"
           inputmode="numeric"
-          placeholder="20 or 30"
-          class="big-input"
+          class="line-input big"
         />
+        <div class="helper">
+          Enter the pulya the game was played to
+        </div>
       </div>
 
       <!-- PLAYERS -->
-      <div class="card">
-        <h2>Players</h2>
+      <div class="section">
+        <label class="section-label">Players</label>
 
-        <input id="player-name-0" class="player-input" placeholder="Player 1" />
-        <input id="player-name-1" class="player-input" placeholder="Player 2" />
-        <input id="player-name-2" class="player-input" placeholder="Player 3" />
-        <input id="player-name-3" class="player-input" placeholder="Player 4" />
+        <input id="player-name-0" class="line-input name" placeholder="Player 1" />
+        <input id="player-name-1" class="line-input name" placeholder="Player 2" />
+        <input id="player-name-2" class="line-input name" placeholder="Player 3" />
+        <input id="player-name-3" class="line-input name" placeholder="Player 4" />
       </div>
 
-      <button onclick="startGame()">Start</button>
+      <button class="primary" onclick="startGame()">Start</button>
     </div>
 
     <!-- INPUT -->
     <div id="screen-input" class="screen hidden">
       <h1 id="current-player-name"></h1>
 
-      <div class="card">
-        <label>Gora</label>
+      <div class="section">
+        <label class="section-label">Gora</label>
         <input
           id="gora-input"
           type="number"
           inputmode="numeric"
-          class="big-input"
-          value="0"
+          class="line-input big"
         />
       </div>
 
-      <div class="card">
-        <h3>Vists</h3>
+      <div class="section">
+        <label class="section-label">Vists</label>
         <div id="whists-container"></div>
       </div>
 
-      <button onclick="savePlayerAndNext()">Next player</button>
+      <button class="primary" onclick="savePlayerAndNext()">Next</button>
     </div>
 
     <!-- REVIEW -->
     <div id="screen-review" class="screen hidden">
       <h1>Review</h1>
-      <div class="card" id="review-list"></div>
-      <button onclick="calculateFinal()">Calculate final</button>
+      <div id="review-list" class="section"></div>
+      <button class="primary" onclick="calculateFinal()">Calculate</button>
     </div>
 
     <!-- FINAL -->
     <div id="screen-final" class="screen hidden">
-      <h1>Final Result</h1>
-      <div class="card" id="final-results"></div>
+      <h1>Result</h1>
+      <div id="final-results" class="section"></div>
       <button class="secondary" onclick="location.reload()">New game</button>
     </div>
 
