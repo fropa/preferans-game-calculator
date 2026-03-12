@@ -98,6 +98,13 @@ h1 {
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .card-kicker {
   font-size: 0.78rem;
   letter-spacing: 0.22em;
@@ -106,34 +113,32 @@ h1 {
   margin-bottom: 6px;
 }
 
-/* =========================
-   Segmented control
-   ========================= */
-.segmented {
-  display: flex;
-  gap: 8px;
-  padding: 6px;
-  border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(2, 6, 23, 0.35);
-  margin-bottom: 12px;
-}
-
-.segmented-btn {
-  flex: 1 1 0;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: rgba(226, 232, 240, 0.9);
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-
-.segmented-btn[aria-pressed="true"] {
+button.icon-btn {
+  width: auto;
+  padding: 0;
+  height: 30px;
+  min-width: 30px;
+  border-radius: 999px;
+  font-size: 1.2rem;
+  line-height: 1;
   background: rgba(15, 23, 42, 0.7);
-  border-color: rgba(148, 163, 184, 0.18);
-  color: rgba(226, 232, 240, 1);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  color: rgba(226, 232, 240, 0.95);
+  box-shadow: none;
+}
+
+button.icon-btn:active {
+  transform: scale(0.97);
+}
+
+.player-actions {
+  margin-top: 10px;
+}
+
+.player-actions button {
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  border-radius: 12px;
 }
 
 @media (min-width: 520px) {
@@ -253,6 +258,11 @@ button.secondary {
 
 button:active {
   transform: scale(0.985);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .button-row {

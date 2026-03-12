@@ -8,6 +8,10 @@ const STORAGE_KEY_SETUP = "preferans:setup:v1";
 const STORAGE_KEY_HISTORY = "preferans:history:v1";
 const MAX_HISTORY_GAMES = 50;
 const DEFAULT_PLAYER_COUNT = 4;
+const MIN_PLAYER_COUNT = 2;
+const MAX_PLAYER_COUNT = 4;
+
+let setupPlayerCount = DEFAULT_PLAYER_COUNT;
 
 /* helpers */
 function qs(id) {
@@ -59,7 +63,7 @@ function saveSetupDraft() {
       p1: qs("player-name-1")?.value ?? "",
       p2: qs("player-name-2")?.value ?? "",
       p3: qs("player-name-3")?.value ?? "",
-      count: getSelectedPlayerCount(),
+      count: setupPlayerCount,
     };
     localStorage.setItem(STORAGE_KEY_SETUP, JSON.stringify(data));
   } catch {
@@ -67,30 +71,47 @@ function saveSetupDraft() {
   }
 }
 
-function getSelectedPlayerCount() {
-  const b3 = qs("player-count-3");
-  const b4 = qs("player-count-4");
-  if (b3?.getAttribute("aria-pressed") === "true") return 3;
-  if (b4?.getAttribute("aria-pressed") === "true") return 4;
-  return DEFAULT_PLAYER_COUNT;
-}
-
 function setPlayerCount(count, persist = true) {
-  const c = count === 3 ? 3 : 4;
-  const b3 = qs("player-count-3");
-  const b4 = qs("player-count-4");
-  const card4 = qs("player-card-3");
+  const c = Math.max(MIN_PLAYER_COUNT, Math.min(MAX_PLAYER_COUNT, num(count)));
+  setupPlayerCount = c;
 
-  if (b3) b3.setAttribute("aria-pressed", String(c === 3));
-  if (b4) b4.setAttribute("aria-pressed", String(c === 4));
-  if (card4) card4.classList.toggle("hidden", c === 3);
+  const card2 = qs("player-card-2");
+  const card3 = qs("player-card-3");
+  const rm2 = qs("remove-player-2");
+  const rm3 = qs("remove-player-3");
+  const addBtn = qs("add-player-btn");
 
-  if (c === 3) {
+  if (card2) card2.classList.toggle("hidden", c < 3);
+  if (card3) card3.classList.toggle("hidden", c < 4);
+
+  if (c < 3) {
+    const p2 = qs("player-name-2");
+    if (p2) p2.value = "";
+  }
+  if (c < 4) {
     const p3 = qs("player-name-3");
     if (p3) p3.value = "";
   }
 
+  // Show remove on the last active card only; never allow going below 2.
+  if (rm2) rm2.classList.toggle("hidden", c !== 3);
+  if (rm3) rm3.classList.toggle("hidden", c !== 4);
+  if (addBtn) addBtn.disabled = c >= MAX_PLAYER_COUNT;
+
   if (persist) saveSetupDraft();
+}
+
+function addPlayer() {
+  setPlayerCount(setupPlayerCount + 1);
+}
+
+function removeLastPlayer() {
+  if (setupPlayerCount <= MIN_PLAYER_COUNT) return;
+  setPlayerCount(setupPlayerCount - 1);
+}
+
+function getSelectedPlayerCount() {
+  return setupPlayerCount;
 }
 
 function loadHistory() {
@@ -215,14 +236,10 @@ function startGame() {
     qs("player-name-3").value.trim(),
   ];
 
-  const names = (desiredCount === 3 ? rawNames.slice(0, 3) : rawNames).filter(Boolean);
+  const names = rawNames.slice(0, desiredCount).filter(Boolean);
 
-  if (desiredCount === 3 && names.length !== 3) {
-    alert("3 players selected: please enter 3 names");
-    return;
-  }
-  if (desiredCount === 4 && names.length !== 4) {
-    alert("4 players selected: please enter 4 names (or switch to 3 players)");
+  if (names.length !== desiredCount) {
+    alert(`${desiredCount} players selected: please enter ${desiredCount} names`);
     return;
   }
 
@@ -441,3 +458,16 @@ function calculateFinal() {
 
   show("screen-final");
 }
+
+// Ensure inline `onclick="..."` handlers always resolve even in stricter environments.
+Object.assign(window, {
+  show,
+  startGame,
+  savePlayerAndNext,
+  calculateFinal,
+  openHistory,
+  clearHistory,
+  setPlayerCount,
+  addPlayer,
+  removeLastPlayer,
+});

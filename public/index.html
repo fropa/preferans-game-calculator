@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Preferans</title>
 
-  <link rel="stylesheet" href="styles.css?v=20260312" />
+  <link rel="stylesheet" href="styles.css?v=20260312b2" />
 </head>
 <body>
   <div class="container">
@@ -33,28 +33,36 @@
       <div class="section">
         <label class="section-label">Players</label>
 
-        <div class="segmented" role="group" aria-label="Player count">
-          <button id="player-count-3" class="segmented-btn" type="button" onclick="setPlayerCount(3)">3 players</button>
-          <button id="player-count-4" class="segmented-btn" type="button" onclick="setPlayerCount(4)">4 players</button>
-        </div>
-
         <div class="card-grid">
           <div class="card">
-            <div class="card-kicker">North</div>
+            <div class="card-head">
+              <div class="card-kicker">North</div>
+            </div>
             <input id="player-name-0" class="line-input name" placeholder="Player 1" autocomplete="nickname" />
           </div>
           <div class="card">
-            <div class="card-kicker">East</div>
+            <div class="card-head">
+              <div class="card-kicker">East</div>
+            </div>
             <input id="player-name-1" class="line-input name" placeholder="Player 2" autocomplete="nickname" />
           </div>
-          <div class="card">
-            <div class="card-kicker">South</div>
+          <div class="card" id="player-card-2">
+            <div class="card-head">
+              <div class="card-kicker">South</div>
+              <button id="remove-player-2" class="icon-btn" type="button" onclick="removeLastPlayer()" aria-label="Remove player">-</button>
+            </div>
             <input id="player-name-2" class="line-input name" placeholder="Player 3" autocomplete="nickname" />
           </div>
           <div class="card" id="player-card-3">
-            <div class="card-kicker">West</div>
+            <div class="card-head">
+              <div class="card-kicker">West</div>
+              <button id="remove-player-3" class="icon-btn" type="button" onclick="removeLastPlayer()" aria-label="Remove player">-</button>
+            </div>
             <input id="player-name-3" class="line-input name" placeholder="Player 4 (optional)" autocomplete="nickname" />
           </div>
+        </div>
+        <div class="player-actions">
+          <button id="add-player-btn" class="secondary" type="button" onclick="addPlayer()">Add player</button>
         </div>
         <div class="helper">Names are remembered on this device.</div>
       </div>
@@ -113,6 +121,6 @@
 
   </div>
 
-  <script src="app.js?v=20260312"></script>
+  <script src="app.js?v=20260312b2"></script>
 </body>
 </html>
