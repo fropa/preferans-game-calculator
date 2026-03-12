@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Preferans point calculator</title>
+  <title>Preferans</title>
 
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -13,6 +13,7 @@
     <!-- SETUP -->
     <div id="screen-setup" class="screen">
       <h1>Preferans</h1>
+      <div class="subtitle">Final settlement calculator</div>
 
       <!-- GAME -->
       <div class="section">
@@ -32,10 +33,25 @@
       <div class="section">
         <label class="section-label">Players</label>
 
-        <input id="player-name-0" class="line-input name" placeholder="Player 1" />
-        <input id="player-name-1" class="line-input name" placeholder="Player 2" />
-        <input id="player-name-2" class="line-input name" placeholder="Player 3" />
-        <input id="player-name-3" class="line-input name" placeholder="Player 4" />
+        <div class="card-grid">
+          <div class="card">
+            <div class="card-kicker">North</div>
+            <input id="player-name-0" class="line-input name" placeholder="Player 1" autocomplete="nickname" />
+          </div>
+          <div class="card">
+            <div class="card-kicker">East</div>
+            <input id="player-name-1" class="line-input name" placeholder="Player 2" autocomplete="nickname" />
+          </div>
+          <div class="card">
+            <div class="card-kicker">South</div>
+            <input id="player-name-2" class="line-input name" placeholder="Player 3" autocomplete="nickname" />
+          </div>
+          <div class="card">
+            <div class="card-kicker">West</div>
+            <input id="player-name-3" class="line-input name" placeholder="Player 4 (optional)" autocomplete="nickname" />
+          </div>
+        </div>
+        <div class="helper">Names are remembered on this device.</div>
       </div>
 
       <button class="primary" onclick="startGame()">Start</button>
@@ -73,6 +89,7 @@
     <!-- FINAL -->
     <div id="screen-final" class="screen hidden">
       <h1>Result</h1>
+      <div id="podium" class="section"></div>
       <div id="final-results" class="section"></div>
       <button class="secondary" onclick="location.reload()">New game</button>
     </div>

@@ -4,6 +4,8 @@ const app = {
   pulya: 0, // GLOBAL ONLY
 };
 
+const STORAGE_KEY_SETUP = "preferans:setup:v1";
+
 /* helpers */
 function qs(id) {
   return document.getElementById(id);
@@ -28,6 +30,47 @@ function fmt(n) {
   return n.toFixed(2);
 }
 
+function loadSetupDraft() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_SETUP);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (!data || typeof data !== "object") return;
+
+    if (typeof data.pulya !== "undefined") qs("game-pulya").value = data.pulya;
+    if (typeof data.p0 === "string") qs("player-name-0").value = data.p0;
+    if (typeof data.p1 === "string") qs("player-name-1").value = data.p1;
+    if (typeof data.p2 === "string") qs("player-name-2").value = data.p2;
+    if (typeof data.p3 === "string") qs("player-name-3").value = data.p3;
+  } catch {
+    // Ignore storage errors or corrupted JSON.
+  }
+}
+
+function saveSetupDraft() {
+  try {
+    const data = {
+      pulya: qs("game-pulya")?.value ?? "",
+      p0: qs("player-name-0")?.value ?? "",
+      p1: qs("player-name-1")?.value ?? "",
+      p2: qs("player-name-2")?.value ?? "",
+      p3: qs("player-name-3")?.value ?? "",
+    };
+    localStorage.setItem(STORAGE_KEY_SETUP, JSON.stringify(data));
+  } catch {
+    // Ignore storage errors (private mode, quota, etc).
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadSetupDraft();
+  ["game-pulya", "player-name-0", "player-name-1", "player-name-2", "player-name-3"].forEach(id => {
+    const el = qs(id);
+    if (!el) return;
+    el.addEventListener("input", () => saveSetupDraft());
+  });
+});
+
 /* setup */
 function startGame() {
   const P = num(qs("game-pulya").value);
@@ -47,6 +90,9 @@ function startGame() {
     alert("3 or 4 players required");
     return;
   }
+
+  // Persist names/pulya for next time.
+  saveSetupDraft();
 
   app.pulya = P;
 
@@ -118,33 +164,39 @@ function renderReview() {
   const c = qs("review-list");
   c.innerHTML = "";
 
-  const header = document.createElement("div");
-  header.className = "result-line";
-  header.innerHTML = `
-    <strong>Pulya</strong>
-    <strong>${fmt(app.pulya)}</strong>
+  const pulyaCard = document.createElement("div");
+  pulyaCard.className = "card";
+  pulyaCard.innerHTML = `
+    <div class="card-kicker">Pulya</div>
+    <div style="font-size: 1.6rem; font-weight: 720;">${fmt(app.pulya)}</div>
   `;
-  c.appendChild(header);
+  c.appendChild(pulyaCard);
 
+  const grid = document.createElement("div");
+  grid.className = "card-grid";
   app.players.forEach(p => {
-    const row = document.createElement("div");
-    row.className = "result-line";
-    row.innerHTML = `
-      <span>${p.name}</span>
-      <span>Gora ${fmt(p.gora)}</span>
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-kicker">Player</div>
+      <div style="font-size: 1.15rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.name}</div>
+      <div style="margin-top: 6px; color: rgba(148, 163, 184, 0.95);">Gora ${fmt(p.gora)}</div>
     `;
-    c.appendChild(row);
+    grid.appendChild(card);
   });
+  c.appendChild(grid);
 }
 
 /* FINAL - Georgian rules */
 function calculateFinal() {
+  const podium = qs("podium");
   const out = qs("final-results");
+  podium.innerHTML = "";
   out.innerHTML = "";
 
   const N = app.players.length;
-  // Mountain is converted into 10 whists total, split evenly across opponents.
-  const K = 10 / (N - 1);
+  // Per the described rules: (hill - minHill) * 10 / N is paid to each opponent as whists.
+  const K = 10 / N;
 
   const gMin = Math.min(...app.players.map(p => p.gora));
 
@@ -196,6 +248,39 @@ function calculateFinal() {
   `;
   out.appendChild(info);
 
+  const expl = document.createElement("div");
+  expl.className = "result-line";
+  expl.innerHTML = `
+    <span>Gora min ${fmt(gMin)}; K ${fmt(K)} (= 10/N, per gora point per opponent)</span>
+    <span>+ receives, - pays</span>
+  `;
+  out.appendChild(expl);
+
+  // Podium (sorted by score desc)
+  const sorted = Object.entries(final)
+    .map(([name, val]) => ({ name, val }))
+    .sort((a, b) => (b.val - a.val) || a.name.localeCompare(b.name));
+
+  podium.className = "section podium";
+  const visualOrderRanks = sorted.length === 3 ? [2, 1, 3] : [2, 1, 3, 4];
+  visualOrderRanks.forEach(rank => {
+    const item = sorted[rank - 1];
+    if (!item) return;
+
+    const card = document.createElement("div");
+    card.className = "podium-item";
+    card.dataset.rank = String(rank);
+    card.innerHTML = `
+      <div class="podium-rank">#${rank}</div>
+      <div class="podium-name">${item.name}</div>
+      <div class="podium-score ${item.val >= 0 ? "plus" : "minus"}">
+        ${item.val >= 0 ? "+" : ""}${fmt(item.val)}
+      </div>
+      <div class="podium-step"></div>
+    `;
+    podium.appendChild(card);
+  });
+
   Object.entries(final).forEach(([name, val]) => {
     const row = document.createElement("div");
     row.className = "result-line";
@@ -210,4 +295,3 @@ function calculateFinal() {
 
   show("screen-final");
 }
-
