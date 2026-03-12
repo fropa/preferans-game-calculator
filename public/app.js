@@ -10,13 +10,15 @@ function qs(id) {
 }
 
 function show(id) {
-  document.querySelectorAll(".screen").forEach(s =>
-    s.classList.add("hidden")
-  );
+  document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
   qs(id).classList.remove("hidden");
 }
 
 function num(v) {
+  if (typeof v === "string") {
+    // Accept comma decimals (common in some locales) without turning them into 0.
+    v = v.replace(",", ".");
+  }
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 }
@@ -54,7 +56,7 @@ function startGame() {
     vists: {},
   }));
 
-  // init vists matrix
+  // init vists matrix (vists[payer][receiver])
   app.players.forEach(p => {
     app.players.forEach(o => {
       if (p.name !== o.name) {
@@ -79,11 +81,17 @@ function renderInput() {
 
   Object.keys(p.vists).forEach(target => {
     const div = document.createElement("div");
-    div.innerHTML = `
-      <label>${p.name} → ${target}</label>
-      <input type="number" value="${p.vists[target]}"
-        oninput="updateVist('${target}', this.value)">
-    `;
+
+    const label = document.createElement("label");
+    label.textContent = `${p.name} -> ${target}`;
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.value = String(p.vists[target] ?? 0);
+    input.addEventListener("input", () => updateVist(target, input.value));
+
+    div.appendChild(label);
+    div.appendChild(input);
     c.appendChild(div);
   });
 }
@@ -93,8 +101,7 @@ function updateVist(target, value) {
 }
 
 function savePlayerAndNext() {
-  app.players[app.currentPlayerIndex].gora =
-    num(qs("gora-input").value);
+  app.players[app.currentPlayerIndex].gora = num(qs("gora-input").value);
 
   app.currentPlayerIndex++;
 
@@ -106,7 +113,7 @@ function savePlayerAndNext() {
   }
 }
 
-/* review — Pulya shown ONCE */
+/* review - Pulya shown ONCE */
 function renderReview() {
   const c = qs("review-list");
   c.innerHTML = "";
@@ -130,13 +137,14 @@ function renderReview() {
   });
 }
 
-/* FINAL — Georgian rules */
+/* FINAL - Georgian rules */
 function calculateFinal() {
   const out = qs("final-results");
   out.innerHTML = "";
 
   const N = app.players.length;
-  const K = (N === 3) ? 2.5 : 3;
+  // Mountain is converted into 10 whists total, split evenly across opponents.
+  const K = 10 / (N - 1);
 
   const gMin = Math.min(...app.players.map(p => p.gora));
 
@@ -145,40 +153,41 @@ function calculateFinal() {
     penalty[p.name] = (p.gora - gMin) * K;
   });
 
-  // clone vists
+  // clone vists (vists[payer][receiver])
   const V = {};
   app.players.forEach(p => {
     V[p.name] = { ...p.vists };
   });
 
-  // add penalties
+  // add penalties: higher gora pays everyone else
   app.players.forEach(X => {
     const px = penalty[X.name];
     if (px === 0) return;
 
     app.players.forEach(Y => {
       if (Y.name !== X.name) {
-        V[Y.name][X.name] += px;
+        V[X.name][Y.name] += px;
       }
     });
   });
 
   // netting
   const final = {};
-  app.players.forEach(p => final[p.name] = 0);
+  app.players.forEach(p => (final[p.name] = 0));
 
   for (let i = 0; i < app.players.length; i++) {
     for (let j = i + 1; j < app.players.length; j++) {
       const A = app.players[i].name;
       const B = app.players[j].name;
 
+      // Positive means A pays B; A goes down, B goes up.
       const net = (V[A][B] || 0) - (V[B][A] || 0);
-      final[A] += net;
-      final[B] -= net;
+      final[A] -= net;
+      final[B] += net;
     }
   }
 
-  // Pulya context — ONCE
+  // Pulya context - ONCE
   const info = document.createElement("div");
   info.className = "result-line";
   info.innerHTML = `
@@ -201,3 +210,4 @@ function calculateFinal() {
 
   show("screen-final");
 }
+
