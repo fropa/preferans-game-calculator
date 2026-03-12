@@ -12,6 +12,7 @@ const MIN_PLAYER_COUNT = 2;
 const MAX_PLAYER_COUNT = 4;
 
 let setupPlayerCount = DEFAULT_PLAYER_COUNT;
+let historyTab = "games";
 
 /* helpers */
 function qs(id) {
@@ -149,12 +150,48 @@ function openHistory() {
   show("screen-history");
 }
 
+function setHistoryTab(tab) {
+  historyTab = tab === "stats" ? "stats" : "games";
+  renderHistory();
+}
+
 function renderHistory() {
   const list = qs("history-list");
-  if (!list) return;
+  const summary = qs("history-summary");
+  const statsEl = qs("history-stats");
+  const tabGames = qs("history-tab-games");
+  const tabStats = qs("history-tab-stats");
+  if (!list || !summary || !statsEl || !tabGames || !tabStats) return;
+
   list.innerHTML = "";
+  summary.innerHTML = "";
+  statsEl.innerHTML = "";
 
   const games = loadHistory();
+
+  tabGames.setAttribute("aria-selected", String(historyTab === "games"));
+  tabStats.setAttribute("aria-selected", String(historyTab === "stats"));
+  list.classList.toggle("hidden", historyTab !== "games");
+  statsEl.classList.toggle("hidden", historyTab !== "stats");
+
+  const summaryCard = document.createElement("div");
+  summaryCard.className = "card";
+
+  const uniquePlayers = new Set();
+  games.forEach(g => {
+    if (!g || !g.final || typeof g.final !== "object") return;
+    Object.keys(g.final).forEach(name => uniquePlayers.add(name));
+  });
+
+  summaryCard.innerHTML = `
+    <div class="card-kicker">Saved games</div>
+    <div style="display:flex; justify-content: space-between; gap: 10px; align-items: baseline;">
+      <div style="font-size: 1.5rem; font-weight: 760;">${games.length}</div>
+      <div style="color: rgba(148, 163, 184, 0.95); font-size: 0.95rem;">${uniquePlayers.size} players</div>
+    </div>
+  `;
+  summary.appendChild(summaryCard);
+
   if (games.length === 0) {
     const empty = document.createElement("div");
     empty.className = "card";
@@ -162,7 +199,12 @@ function renderHistory() {
       <div class="card-kicker">No games saved</div>
       <div style="color: rgba(148, 163, 184, 0.95);">Finish a game and tap Calculate to store it here.</div>
     `;
-    list.appendChild(empty);
+    (historyTab === "stats" ? statsEl : list).appendChild(empty);
+    return;
+  }
+
+  if (historyTab === "stats") {
+    renderHistoryStats(statsEl, games);
     return;
   }
 
@@ -208,6 +250,80 @@ function renderHistory() {
 
     list.appendChild(card);
   });
+}
+
+function renderHistoryStats(container, games) {
+  const stats = {};
+  let gamesWithFinal = 0;
+  let tieGames = 0;
+
+  games.forEach(g => {
+    const final = g && g.final && typeof g.final === "object" ? g.final : null;
+    if (!final) return;
+
+    const entries = Object.entries(final)
+      .map(([name, val]) => ({ name, val: Number(val) }))
+      .filter(x => x.name && Number.isFinite(x.val));
+    if (entries.length === 0) return;
+
+    gamesWithFinal++;
+    const maxVal = Math.max(...entries.map(x => x.val));
+    const winners = entries.filter(x => x.val === maxVal).map(x => x.name);
+    if (winners.length > 1) tieGames++;
+
+    entries.forEach(e => {
+      if (!stats[e.name]) stats[e.name] = { name: e.name, wins: 0, shared: 0, games: 0 };
+      stats[e.name].games++;
+    });
+
+    if (winners.length === 1) {
+      const w = winners[0];
+      if (!stats[w]) stats[w] = { name: w, wins: 0, shared: 0, games: 0 };
+      stats[w].wins++;
+    } else {
+      winners.forEach(w => {
+        if (!stats[w]) stats[w] = { name: w, wins: 0, shared: 0, games: 0 };
+        stats[w].shared++;
+      });
+    }
+  });
+
+  const rows = Object.values(stats).sort((a, b) => {
+    const aTotal = a.wins + a.shared;
+    const bTotal = b.wins + b.shared;
+    return (bTotal - aTotal) || (b.wins - a.wins) || a.name.localeCompare(b.name);
+  });
+
+  const top = rows[0];
+  const head = document.createElement("div");
+  head.className = "card";
+  head.innerHTML = `
+    <div class="card-kicker">Wins</div>
+    <div style="display:flex; justify-content: space-between; gap: 10px; align-items: baseline;">
+      <div style="font-size: 1.05rem; font-weight: 720;">${top ? top.name : "N/A"}</div>
+      <div style="color: rgba(148, 163, 184, 0.95); font-size: 0.95rem;">${gamesWithFinal} games, ${tieGames} ties</div>
+    </div>
+    <div style="margin-top: 8px; color: rgba(148, 163, 184, 0.95); font-size: 0.92rem;">
+      Wins count only sole winners; ties count as "shared".
+    </div>
+  `;
+  container.appendChild(head);
+
+  const grid = document.createElement("div");
+  grid.className = "card-grid";
+  rows.forEach(p => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-kicker">Player</div>
+      <div style="font-size: 1.12rem; font-weight: 740; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.name}</div>
+      <div class="result-line"><span>Wins</span><span class="plus">+${p.wins}</span></div>
+      <div class="result-line"><span>Shared</span><span>${p.shared}</span></div>
+      <div class="result-line"><span>Games</span><span>${p.games}</span></div>
+    `;
+    grid.appendChild(card);
+  });
+  container.appendChild(grid);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -470,4 +586,5 @@ Object.assign(window, {
   setPlayerCount,
   addPlayer,
   removeLastPlayer,
+  setHistoryTab,
 });

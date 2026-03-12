@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Preferans</title>
 
-  <link rel="stylesheet" href="styles.css?v=20260312b2" />
+  <link rel="stylesheet" href="styles.css?v=20260312b3" />
 </head>
 <body>
   <div class="container">
@@ -74,7 +74,13 @@
     <!-- HISTORY -->
     <div id="screen-history" class="screen hidden">
       <h1>History</h1>
+      <div id="history-summary" class="section"></div>
+      <div class="tabs" role="tablist" aria-label="History tabs">
+        <button id="history-tab-games" class="tab-btn" type="button" onclick="setHistoryTab('games')" role="tab">Games</button>
+        <button id="history-tab-stats" class="tab-btn" type="button" onclick="setHistoryTab('stats')" role="tab">Stats</button>
+      </div>
       <div id="history-list" class="section"></div>
+      <div id="history-stats" class="section hidden"></div>
       <div class="button-row">
         <button class="secondary" onclick="show('screen-setup')">Back</button>
         <button class="secondary" onclick="clearHistory()">Clear</button>
@@ -121,6 +127,6 @@
 
   </div>
 
-  <script src="app.js?v=20260312b2"></script>
+  <script src="app.js?v=20260312b3"></script>
 </body>
 </html>
