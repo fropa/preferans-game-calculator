@@ -5,6 +5,9 @@ const app = {
 };
 
 const STORAGE_KEY_SETUP = "preferans:setup:v1";
+const STORAGE_KEY_HISTORY = "preferans:history:v1";
+const MAX_HISTORY_GAMES = 50;
+const DEFAULT_PLAYER_COUNT = 4;
 
 /* helpers */
 function qs(id) {
@@ -42,6 +45,7 @@ function loadSetupDraft() {
     if (typeof data.p1 === "string") qs("player-name-1").value = data.p1;
     if (typeof data.p2 === "string") qs("player-name-2").value = data.p2;
     if (typeof data.p3 === "string") qs("player-name-3").value = data.p3;
+    if (typeof data.count === "number") setPlayerCount(data.count, false);
   } catch {
     // Ignore storage errors or corrupted JSON.
   }
@@ -55,6 +59,7 @@ function saveSetupDraft() {
       p1: qs("player-name-1")?.value ?? "",
       p2: qs("player-name-2")?.value ?? "",
       p3: qs("player-name-3")?.value ?? "",
+      count: getSelectedPlayerCount(),
     };
     localStorage.setItem(STORAGE_KEY_SETUP, JSON.stringify(data));
   } catch {
@@ -62,7 +67,130 @@ function saveSetupDraft() {
   }
 }
 
+function getSelectedPlayerCount() {
+  const b3 = qs("player-count-3");
+  const b4 = qs("player-count-4");
+  if (b3?.getAttribute("aria-pressed") === "true") return 3;
+  if (b4?.getAttribute("aria-pressed") === "true") return 4;
+  return DEFAULT_PLAYER_COUNT;
+}
+
+function setPlayerCount(count, persist = true) {
+  const c = count === 3 ? 3 : 4;
+  const b3 = qs("player-count-3");
+  const b4 = qs("player-count-4");
+  const card4 = qs("player-card-3");
+
+  if (b3) b3.setAttribute("aria-pressed", String(c === 3));
+  if (b4) b4.setAttribute("aria-pressed", String(c === 4));
+  if (card4) card4.classList.toggle("hidden", c === 3);
+
+  if (c === 3) {
+    const p3 = qs("player-name-3");
+    if (p3) p3.value = "";
+  }
+
+  if (persist) saveSetupDraft();
+}
+
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_HISTORY);
+    if (!raw) return [];
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(games) {
+  try {
+    localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(games));
+  } catch {
+    // Ignore storage errors (private mode, quota, etc).
+  }
+}
+
+function addGameToHistory(game) {
+  const games = loadHistory();
+  games.unshift(game);
+  saveHistory(games.slice(0, MAX_HISTORY_GAMES));
+}
+
+function clearHistory() {
+  saveHistory([]);
+  renderHistory();
+}
+
+function openHistory() {
+  renderHistory();
+  show("screen-history");
+}
+
+function renderHistory() {
+  const list = qs("history-list");
+  if (!list) return;
+  list.innerHTML = "";
+
+  const games = loadHistory();
+  if (games.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "card";
+    empty.innerHTML = `
+      <div class="card-kicker">No games saved</div>
+      <div style="color: rgba(148, 163, 184, 0.95);">Finish a game and tap Calculate to store it here.</div>
+    `;
+    list.appendChild(empty);
+    return;
+  }
+
+  games.forEach(g => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const when = (() => {
+      try {
+        const d = new Date(g.ts);
+        if (!Number.isFinite(d.getTime())) return String(g.ts || "");
+        return d.toLocaleString();
+      } catch {
+        return String(g.ts || "");
+      }
+    })();
+
+    const final = g.final && typeof g.final === "object" ? g.final : {};
+    const sorted = Object.entries(final)
+      .map(([name, val]) => ({ name, val: Number(val) }))
+      .filter(x => Number.isFinite(x.val))
+      .sort((a, b) => (b.val - a.val) || a.name.localeCompare(b.name));
+
+    const header = document.createElement("div");
+    header.innerHTML = `
+      <div class="card-kicker">${when}</div>
+      <div style="display:flex; justify-content: space-between; gap: 10px; align-items: baseline;">
+        <div style="font-size: 1.05rem; font-weight: 720;">Pulya ${fmt(num(g.pulya))}</div>
+        <div style="color: rgba(148, 163, 184, 0.95); font-size: 0.95rem;">${num(g.N)} players</div>
+      </div>
+    `;
+    card.appendChild(header);
+
+    sorted.slice(0, 4).forEach((p, idx) => {
+      const line = document.createElement("div");
+      line.className = "result-line";
+      line.innerHTML = `
+        <span>#${idx + 1} ${p.name}</span>
+        <span class="${p.val >= 0 ? "plus" : "minus"}">${p.val >= 0 ? "+" : ""}${fmt(p.val)}</span>
+      `;
+      card.appendChild(line);
+    });
+
+    list.appendChild(card);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  setPlayerCount(DEFAULT_PLAYER_COUNT, false);
   loadSetupDraft();
   ["game-pulya", "player-name-0", "player-name-1", "player-name-2", "player-name-3"].forEach(id => {
     const el = qs(id);
@@ -79,15 +207,22 @@ function startGame() {
     return;
   }
 
-  const names = [
+  const desiredCount = getSelectedPlayerCount();
+  const rawNames = [
     qs("player-name-0").value.trim(),
     qs("player-name-1").value.trim(),
     qs("player-name-2").value.trim(),
     qs("player-name-3").value.trim(),
-  ].filter(Boolean);
+  ];
 
-  if (names.length < 3 || names.length > 4) {
-    alert("3 or 4 players required");
+  const names = (desiredCount === 3 ? rawNames.slice(0, 3) : rawNames).filter(Boolean);
+
+  if (desiredCount === 3 && names.length !== 3) {
+    alert("3 players selected: please enter 3 names");
+    return;
+  }
+  if (desiredCount === 4 && names.length !== 4) {
+    alert("4 players selected: please enter 4 names (or switch to 3 players)");
     return;
   }
 
@@ -291,6 +426,17 @@ function calculateFinal() {
       </span>
     `;
     out.appendChild(row);
+  });
+
+  addGameToHistory({
+    id: (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()),
+    ts: new Date().toISOString(),
+    pulya: app.pulya,
+    N,
+    gMin,
+    K,
+    players: app.players.map(p => ({ name: p.name, gora: p.gora, vists: { ...p.vists } })),
+    final: { ...final },
   });
 
   show("screen-final");

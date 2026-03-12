@@ -33,6 +33,11 @@
       <div class="section">
         <label class="section-label">Players</label>
 
+        <div class="segmented" role="group" aria-label="Player count">
+          <button id="player-count-3" class="segmented-btn" type="button" onclick="setPlayerCount(3)">3 players</button>
+          <button id="player-count-4" class="segmented-btn" type="button" onclick="setPlayerCount(4)">4 players</button>
+        </div>
+
         <div class="card-grid">
           <div class="card">
             <div class="card-kicker">North</div>
@@ -46,7 +51,7 @@
             <div class="card-kicker">South</div>
             <input id="player-name-2" class="line-input name" placeholder="Player 3" autocomplete="nickname" />
           </div>
-          <div class="card">
+          <div class="card" id="player-card-3">
             <div class="card-kicker">West</div>
             <input id="player-name-3" class="line-input name" placeholder="Player 4 (optional)" autocomplete="nickname" />
           </div>
@@ -55,6 +60,17 @@
       </div>
 
       <button class="primary" onclick="startGame()">Start</button>
+      <button class="secondary" onclick="openHistory()">History</button>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="screen-history" class="screen hidden">
+      <h1>History</h1>
+      <div id="history-list" class="section"></div>
+      <div class="button-row">
+        <button class="secondary" onclick="show('screen-setup')">Back</button>
+        <button class="secondary" onclick="clearHistory()">Clear</button>
+      </div>
     </div>
 
     <!-- INPUT -->
@@ -91,6 +107,7 @@
       <h1>Result</h1>
       <div id="podium" class="section"></div>
       <div id="final-results" class="section"></div>
+      <button class="secondary" onclick="openHistory()">History</button>
       <button class="secondary" onclick="location.reload()">New game</button>
     </div>
 
