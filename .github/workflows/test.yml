@@ -1,0 +1,68 @@
+name: Debug DigitalOcean SSH
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Show non-sensitive info
+        run: |
+          echo "Testing SSH connectivity to configured host..."
+          echo "Host is configured via GitHub secret."
+          echo "Port is configured via GitHub secret."
+          echo "User is configured via GitHub secret."
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts || true
+
+      - name: Test TCP connectivity to SSH port
+        run: |
+          nc -vz "${{ secrets.DEPLOY_HOST }}" "${{ secrets.DEPLOY_PORT }}"
+
+      - name: SSH verbose test
+        run: |
+          ssh -vvv \
+            -i ~/.ssh/id_ed25519 \
+            -p "${{ secrets.DEPLOY_PORT }}" \
+            -o StrictHostKeyChecking=no \
+            -o BatchMode=yes \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "echo CONNECTED && whoami && hostname && id && uname -a"
+
+      - name: Collect remote server info
+        run: |
+          ssh -i ~/.ssh/id_ed25519 \
+            -p "${{ secrets.DEPLOY_PORT }}" \
+            -o StrictHostKeyChecking=no \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+            echo "=== WHOAMI ==="
+            whoami
+
+            echo "=== HOSTNAME ==="
+            hostname
+
+            echo "=== IP ==="
+            hostname -I || true
+
+            echo "=== OS ==="
+            cat /etc/os-release || true
+
+            echo "=== SSHD CONFIG PORT LINES ==="
+            sudo grep -Ei '^\s*Port\s+' /etc/ssh/sshd_config /etc/ssh/sshd_config.d/* 2>/dev/null || true
+
+            echo "=== LISTENING SSH PORTS ==="
+            sudo ss -tulpn | grep ssh || true
+
+            echo "=== HOME ==="
+            echo "$HOME"
+
+            echo "=== DEPLOY PATH EXISTS ==="
+            ls -ld "${{ secrets.DEPLOY_PATH }}" 2>/dev/null || echo "DEPLOY_PATH not found"
+          EOF
