@@ -1,14 +1,59 @@
-name: Show Deploy Info
+name: Inspect DigitalOcean Server
 
 on:
   workflow_dispatch: {}
 
 jobs:
-  show:
+  inspect:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Print safe connection info
+      - name: Set up SSH key
         run: |
-          echo "Host: ${{ secrets.DEPLOY_HOST }}"
-          echo "Port: ${{ secrets.DEPLOY_PORT }}"
-          echo "User: ${{ secrets.DEPLOY_USER }}"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT }}" "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts || true
+
+      - name: Check raw connectivity
+        run: |
+          echo "Testing host/port..."
+          nc -vz "${{ secrets.DEPLOY_HOST }}" "${{ secrets.DEPLOY_PORT }}"
+
+      - name: Run remote inspection
+        run: |
+          ssh -vv \
+            -i ~/.ssh/id_ed25519 \
+            -p "${{ secrets.DEPLOY_PORT }}" \
+            -o StrictHostKeyChecking=no \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" << 'EOF'
+            set -x
+
+            echo "=== BASIC ==="
+            whoami
+            id
+            hostname
+            uname -a
+
+            echo "=== SSH SERVICE ==="
+            sudo systemctl status ssh --no-pager || sudo systemctl status sshd --no-pager || true
+
+            echo "=== SSH ENABLED ==="
+            sudo systemctl is-enabled ssh || sudo systemctl is-enabled sshd || true
+
+            echo "=== SSH LISTENERS ==="
+            sudo ss -tulpn | grep -E 'ssh|sshd' || true
+
+            echo "=== SSH CONFIG ==="
+            sudo grep -RinE '^[[:space:]]*(Port|ListenAddress|PasswordAuthentication|PubkeyAuthentication|PermitRootLogin)' /etc/ssh/sshd_config /etc/ssh/sshd_config.d 2>/dev/null || true
+
+            echo "=== FIREWALL ==="
+            sudo ufw status verbose || true
+            sudo iptables -S || true
+            sudo nft list ruleset || true
+
+            echo "=== PASSWD FILE ==="
+            sudo cat /etc/passwd
+          EOF
