@@ -33,27 +33,5 @@ jobs:
 
             echo "=== BASIC ==="
             whoami
-            id
-            hostname
-            uname -a
-
-            echo "=== SSH SERVICE ==="
-            sudo systemctl status ssh --no-pager || sudo systemctl status sshd --no-pager || true
-
-            echo "=== SSH ENABLED ==="
-            sudo systemctl is-enabled ssh || sudo systemctl is-enabled sshd || true
-
-            echo "=== SSH LISTENERS ==="
-            sudo ss -tulpn | grep -E 'ssh|sshd' || true
-
-            echo "=== SSH CONFIG ==="
-            sudo grep -RinE '^[[:space:]]*(Port|ListenAddress|PasswordAuthentication|PubkeyAuthentication|PermitRootLogin)' /etc/ssh/sshd_config /etc/ssh/sshd_config.d 2>/dev/null || true
-
-            echo "=== FIREWALL ==="
-            sudo ufw status verbose || true
-            sudo iptables -S || true
-            sudo nft list ruleset || true
-
-            echo "=== PASSWD FILE ==="
-            sudo cat /etc/passwd
-          EOF
+            sudo cat /etc/ssh/sshd_config
+            sudo netstat -tulpn
